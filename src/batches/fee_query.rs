@@ -17,7 +17,7 @@ use alloy::sol_types::SolCall;
 // LP Locker V4 function selectors
 sol! {
     #[sol(rpc)]
-    contract Cat402LpLockerV4 {
+    contract LpLockerV4 {
         function isLocked(address token) external view returns (bool);
         function getClaimableFees(address token) external view returns (uint256 amount0, uint256 amount1);
     }
@@ -60,7 +60,7 @@ where
 
         for token in &chunk {
             // isLocked call
-            let is_locked_calldata = Cat402LpLockerV4::isLockedCall { token: *token }.abi_encode();
+            let is_locked_calldata = LpLockerV4::isLockedCall { token: *token }.abi_encode();
             calls.push(CallSpec {
                 target: lp_locker,
                 calldata: Bytes::from(is_locked_calldata),
@@ -69,7 +69,7 @@ where
             });
 
             // getClaimableFees call
-            let fees_calldata = Cat402LpLockerV4::getClaimableFeesCall { token: *token }.abi_encode();
+            let fees_calldata = LpLockerV4::getClaimableFeesCall { token: *token }.abi_encode();
             calls.push(CallSpec {
                 target: lp_locker,
                 calldata: Bytes::from(fees_calldata),
@@ -135,7 +135,7 @@ mod tests {
     #[test]
     fn test_calldata_encoding() {
         let token = Address::repeat_byte(0x42);
-        let calldata = Cat402LpLockerV4::isLockedCall { token }.abi_encode();
+        let calldata = LpLockerV4::isLockedCall { token }.abi_encode();
         // Should be 4 bytes selector + 32 bytes address
         assert_eq!(calldata.len(), 36);
     }

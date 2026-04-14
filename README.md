@@ -50,13 +50,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 ## How It Works
 
 ```
-1. Build CallSpecs           2. Generate EVM Bytecode        3. eth_call         4. Decode
-┌──────────────────┐    ┌───────────────────────────┐    ┌──────────┐    ┌──────────────┐
-│ target: 0xA0b8.. │    │ PUSH calldata → MSTORE    │    │ Single   │    │ Parse 32-byte│
-│ calldata: 0x70.. │ -> │ PUSH target → STATICCALL  │ -> │ RPC call │ -> │ aligned      │
-│ return_size: 32  │    │ ... repeat per call ...    │    │ (free)   │    │ results      │
-│ use_call: false  │    │ RETURN packed results      │    │          │    │              │
-└──────────────────┘    └───────────────────────────┘    └──────────┘    └──────────────┘
+┌─────────────────────┐     ┌──────────────────────────────┐     ┌─────────────┐     ┌─────────────────┐
+│  1. Build CallSpecs  │     │  2. Generate EVM Bytecode     │     │ 3. eth_call  │     │   4. Decode      │
+│                     │     │                              │     │             │     │                 │
+│  target   : 0xA0b8  │     │  PUSH calldata  -> MSTORE    │     │  Single     │     │  Parse packed   │
+│  calldata : 0x70a0  │ ──> │  PUSH target    -> STATICCALL│ ──> │  RPC call   │ ──> │  32-byte words  │
+│  ret_size : 32      │     │  ... repeat for each call    │     │  (gas-free) │     │  into structs   │
+│  use_call : false   │     │  RETURN packed results       │     │             │     │                 │
+└─────────────────────┘     └──────────────────────────────┘     └─────────────┘     └─────────────────┘
 ```
 
 The core primitive is `CallSpec`:
@@ -105,8 +106,8 @@ let call = CallSpec {
 | `batch_v4_quotes` | Multiple pool key + direction quotes | N → 1 |
 | `batch_multihop_quote` | Two-hop quote (e.g., USDC→X→Y) | 4 → 2 |
 | `batch_pool_states` | V4 pool slot0 + liquidity | 2N → 1 |
-| `discover_cat402_pool` | On-chain pool discovery by convention | 2 → 1 |
-| `batch_discover_cat402_pools` | Batch pool discovery | 2N → 1 |
+| `discover_pool` | On-chain pool discovery by convention | 2 → 1 |
+| `batch_discover_pools` | Batch pool discovery | 2N → 1 |
 | `discover_token_pools` | Find both possible pool pairings | 4 → 1 |
 
 ### Position & Fee Queries
@@ -144,7 +145,7 @@ For the higher-level batch functions:
    - `universal_router_address()` — Universal Router address
    - `weth_address()` — Wrapped native token address
 
-3. **Cat402-specific operations** (`discover_cat402_pool`, `batch_orchestrator_state`, etc.) are tied to the Cat402 protocol contracts. Replace with your own contract ABIs if needed.
+3. **Protocol-specific operations** (`batch_orchestrator_state`, pool discovery, etc.) are tied to specific contract ABIs. Replace with your own contract interfaces as needed.
 
 ### Custom Batch Operations
 

@@ -1,4 +1,4 @@
-//! Batch identity resolution from CatIdentityRegistry (ERC-8004 + SSTORE2)
+//! Batch identity resolution (ERC-8004 + SSTORE2)
 //!
 //! Efficiently resolves multiple identities in a single eth_call.
 
@@ -12,7 +12,7 @@ use alloy::network::Ethereum;
 
 // Contract interface
 sol! {
-    /// CatIdentityRegistry with SSTORE2 storage
+    /// Identity registry with SSTORE2 storage
     interface ICatIdentityRegistry {
         function tokenByName(string calldata name) external view returns (uint256);
         function ownerOf(uint256 tokenId) external view returns (address);

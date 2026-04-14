@@ -1,7 +1,7 @@
 //! emasm-service: Batch RPC calls using EVM bytecode assembly
 //!
-//! This crate provides optimized batch read operations for the 402.cat platform,
-//! reducing RPC calls from 81+ to ~5 by bundling multiple reads into single eth_call.
+//! This crate provides optimized batch read operations for EVM-compatible chains,
+//! reducing RPC calls from 80+ to ~5 by bundling multiple reads into a single eth_call.
 
 mod batches;
 mod bytecode;

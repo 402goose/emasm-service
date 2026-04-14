@@ -1,4 +1,4 @@
-//! Batch ERC-3009 prerequisite queries for x402 payment verification
+//! Batch ERC-3009 prerequisite queries for payment verification
 //!
 //! Replaces 4 sequential RPC calls with a single batch call:
 //! 1. Token name (EIP-712 domain)

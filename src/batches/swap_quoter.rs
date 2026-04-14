@@ -1,7 +1,6 @@
 //! Unified Swap Quoter with Batched RPC Calls
 //!
-//! Replaces the TypeScript quoter with a Rust-native implementation
-//! that batches RPC calls using EMASM.
+//! Batches V3 + V4 quote lookups and token metadata into minimal RPC calls.
 //!
 //! # RPC Call Reduction
 //!
@@ -76,7 +75,7 @@ pub struct SwapQuoteInput {
     pub token_out: Address,
     pub amount_in: U256,
     pub chain_id: u64,
-    /// Optional V4 hook addresses to try (e.g., CAT402 hook)
+    /// Optional V4 hook addresses to try
     pub v4_hooks: Option<Vec<Address>>,
 }
 
@@ -105,14 +104,12 @@ pub struct SwapQuoteOutput {
     pub rpc_calls_made: usize,
 }
 
-/// Known V4 hook addresses (Clanker hooks on Base)
+/// Known V4 hook addresses on Base
+///
+/// Add your own hook addresses here for custom pool discovery.
 fn known_v4_hooks() -> Vec<Address> {
     vec![
         Address::ZERO, // Vanilla V4 (no hooks)
-        "0xd60D6B218116cFd801E28F78d011a203D2b068Cc".parse().unwrap(), // ClankerHookDynamicFeeV2
-        "0xb429d62f8f3bFFb98CdB9569533eA23bF0Ba28CC".parse().unwrap(), // ClankerHookStaticFeeV2
-        "0x34a45c6B61876d739400Bd71228CbcbD4F53E8cC".parse().unwrap(), // ClankerHookDynamicFee
-        "0xDd5EeaFf7BD481AD55Db083062b13a3cdf0A68CC".parse().unwrap(), // ClankerHookStaticFee
     ]
 }
 

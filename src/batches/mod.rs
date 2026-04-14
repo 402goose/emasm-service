@@ -1,4 +1,4 @@
-//! Batch operation implementations for 402.cat platform
+//! Batch operation implementations
 
 mod wallet_balances;
 mod erc3009_prereqs;

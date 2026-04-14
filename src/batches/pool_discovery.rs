@@ -1,7 +1,7 @@
 //! Batch pool discovery for DEX routing
 //!
 //! Efficiently query multiple pool states for quote comparison.
-//! Includes on-chain pool discovery for Cat402 tokens without DB dependency.
+//! Includes on-chain pool discovery without DB dependency.
 
 use crate::{
     bytecode::CallSpec,
@@ -193,25 +193,25 @@ where
 }
 
 // ============================================================================
-// Cat402 Pool Discovery - On-Chain Pool Detection Without DB
+// V4 Pool Discovery - On-Chain Pool Detection Without DB
 // ============================================================================
 
-/// Cat402 pool configuration constants
-pub mod cat402_constants {
-    /// Dynamic fee flag used by Cat402 pools
+/// Default pool configuration constants
+pub mod pool_defaults {
+    /// Dynamic fee flag
     pub const DYNAMIC_FEE_FLAG: u32 = 0x800000;
-    /// Tick spacing for Cat402 pools
+    /// Default tick spacing
     pub const TICK_SPACING: i32 = 60;
 }
 
-/// Parameters for discovering a Cat402 pool
+/// Parameters for discovering a V4 pool
 #[derive(Debug, Clone)]
-pub struct Cat402PoolParams {
+pub struct PoolDiscoveryParams {
     /// The token address (will be paired with CAT or USDC)
     pub token: Address,
     /// The paired currency (CAT for graduated tokens, USDC for CAT itself)
     pub paired_currency: Address,
-    /// The Cat402Hook address
+    /// The hook address
     pub hook: Address,
 }
 
@@ -276,14 +276,14 @@ pub fn compute_pool_id(
     keccak256(&encoded).into()
 }
 
-/// Discover a Cat402 pool for a single token
+/// Discover a V4 pool for a single token
 ///
-/// Computes the expected pool key based on Cat402 conventions and checks
-/// if the pool exists on-chain via StateView.
-pub async fn discover_cat402_pool<T, P>(
+/// Computes the expected pool key and checks if the pool exists on-chain
+/// via StateView.
+pub async fn discover_pool<T, P>(
     provider: &P,
     state_view: Address,
-    params: Cat402PoolParams,
+    params: PoolDiscoveryParams,
 ) -> Result<DiscoveredPool, EmasmError>
 where
     T: Transport + Clone,
@@ -296,8 +296,8 @@ where
         (params.paired_currency, params.token)
     };
 
-    let fee = cat402_constants::DYNAMIC_FEE_FLAG;
-    let tick_spacing = cat402_constants::TICK_SPACING;
+    let fee = pool_defaults::DYNAMIC_FEE_FLAG;
+    let tick_spacing = pool_defaults::TICK_SPACING;
 
     // Compute pool ID
     let pool_id = compute_pool_id(currency0, currency1, fee, tick_spacing, params.hook);
@@ -323,11 +323,11 @@ where
     })
 }
 
-/// Batch discover Cat402 pools for multiple tokens
+/// Batch discover V4 pools for multiple tokens
 ///
 /// Efficiently discovers pools for multiple tokens in a single batch call.
 /// All tokens are assumed to use the same paired currency and hook.
-pub async fn batch_discover_cat402_pools<T, P>(
+pub async fn batch_discover_pools<T, P>(
     provider: &P,
     state_view: Address,
     tokens: &[Address],
@@ -342,8 +342,8 @@ where
         return Ok(Vec::new());
     }
 
-    let fee = cat402_constants::DYNAMIC_FEE_FLAG;
-    let tick_spacing = cat402_constants::TICK_SPACING;
+    let fee = pool_defaults::DYNAMIC_FEE_FLAG;
+    let tick_spacing = pool_defaults::TICK_SPACING;
 
     // Compute all pool IDs and track the pool key components
     let pool_data: Vec<_> = tokens.iter().map(|token| {
@@ -380,9 +380,9 @@ where
     Ok(results)
 }
 
-/// Discover both possible pools for a token (CAT-paired and USDC-paired)
+/// Discover both possible pools for a token against two quote currencies
 ///
-/// Returns up to 2 discovered pools - one paired with CAT and one with USDC.
+/// Returns up to 2 discovered pools, one for each quote currency pairing.
 /// Useful for determining the correct routing for a token.
 pub async fn discover_token_pools<T, P>(
     provider: &P,
@@ -397,8 +397,8 @@ where
     P: Provider<T, Ethereum>,
 {
     // Compute pool IDs for both possible pairings
-    let fee = cat402_constants::DYNAMIC_FEE_FLAG;
-    let tick_spacing = cat402_constants::TICK_SPACING;
+    let fee = pool_defaults::DYNAMIC_FEE_FLAG;
+    let tick_spacing = pool_defaults::TICK_SPACING;
 
     let (cat_c0, cat_c1) = if token < cat_address {
         (token, cat_address)
@@ -465,8 +465,8 @@ mod tests {
         let pool_id = compute_pool_id(
             token,
             cat,
-            cat402_constants::DYNAMIC_FEE_FLAG,
-            cat402_constants::TICK_SPACING,
+            pool_defaults::DYNAMIC_FEE_FLAG,
+            pool_defaults::TICK_SPACING,
             hook,
         );
 
@@ -476,8 +476,8 @@ mod tests {
         let pool_id2 = compute_pool_id(
             token,
             cat,
-            cat402_constants::DYNAMIC_FEE_FLAG,
-            cat402_constants::TICK_SPACING,
+            pool_defaults::DYNAMIC_FEE_FLAG,
+            pool_defaults::TICK_SPACING,
             hook,
         );
         assert_eq!(pool_id, pool_id2);
@@ -491,14 +491,14 @@ mod tests {
         // Pool ID should be the same regardless of input order
         let id1 = compute_pool_id(
             token_low, token_high,
-            cat402_constants::DYNAMIC_FEE_FLAG,
-            cat402_constants::TICK_SPACING,
+            pool_defaults::DYNAMIC_FEE_FLAG,
+            pool_defaults::TICK_SPACING,
             Address::ZERO,
         );
         let id2 = compute_pool_id(
             token_high, token_low, // Reversed!
-            cat402_constants::DYNAMIC_FEE_FLAG,
-            cat402_constants::TICK_SPACING,
+            pool_defaults::DYNAMIC_FEE_FLAG,
+            pool_defaults::TICK_SPACING,
             Address::ZERO,
         );
 
@@ -511,8 +511,8 @@ mod tests {
     fn test_known_pool_id_computation() {
         use std::str::FromStr;
 
-        // Real pool data from graduated "damn" token
-        // This verifies our pool ID computation matches what V4 actually uses
+        // Known pool data verified on-chain
+        // Verifies pool ID computation matches V4
         let currency0 = Address::from_str("0x0049e7082ed3715671d8f55c574f929622c70402").unwrap();
         let currency1 = Address::from_str("0x402a813310f92630848c93a65746110cdb2b0402").unwrap();
         let hooks = Address::from_str("0x08fa6267515a60fe40779366646eb54e87d0c0c0").unwrap();
