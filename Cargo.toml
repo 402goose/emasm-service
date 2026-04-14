@@ -1,0 +1,26 @@
+[package]
+name = "emasm-service"
+version = "0.1.0"
+edition = "2021"
+authors = ["402.cat Team"]
+license = "MIT"
+description = "Batch EVM RPC calls using bytecode assembly — reduce 80+ calls to ~5 via eth_call"
+repository = "https://github.com/alectaggart/emasm-service"
+keywords = ["evm", "ethereum", "rpc", "batch", "alloy"]
+categories = ["cryptography::cryptocurrencies"]
+
+[dependencies]
+alloy = { version = "0.8", features = [
+    "full",
+    "node-bindings",
+    "rpc-types",
+    "providers",
+    "contract",
+    "signer-local",
+    "sol-types",
+] }
+tokio = { version = "1.40", features = ["full"] }
+futures = "0.3"
+thiserror = "2.0"
+tracing = "0.1"
+hex = "0.4"
