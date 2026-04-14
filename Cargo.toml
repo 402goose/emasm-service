@@ -2,10 +2,10 @@
 name = "emasm-service"
 version = "0.1.0"
 edition = "2021"
-authors = ["emasm contributors"]
+authors = ["402goose", "kungfuflex"]
 license = "MIT"
 description = "Batch EVM RPC calls using bytecode assembly — reduce 80+ calls to ~5 via eth_call"
-repository = "https://github.com/alectaggart/emasm-service"
+repository = "https://github.com/402goose/emasm-service"
 keywords = ["evm", "ethereum", "rpc", "batch", "alloy"]
 categories = ["cryptography::cryptocurrencies"]
 
