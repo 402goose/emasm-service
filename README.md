@@ -51,7 +51,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 ```
 ┌─────────────────────┐     ┌──────────────────────────────┐     ┌─────────────┐     ┌─────────────────┐
-│  1. Build CallSpecs  │     │  2. Generate EVM Bytecode     │     │ 3. eth_call  │     │   4. Decode      │
+│  1. Build CallSpecs │     │  2. Generate EVM Bytecode    │     │ 3. eth_call │     │   4. Decode     │
 │                     │     │                              │     │             │     │                 │
 │  target   : 0xA0b8  │     │  PUSH calldata  -> MSTORE    │     │  Single     │     │  Parse packed   │
 │  calldata : 0x70a0  │ ──> │  PUSH target    -> STATICCALL│ ──> │  RPC call   │ ──> │  32-byte words  │
